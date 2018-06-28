@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta content="text/html" charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>工作学习有条不紊|鲲鹏笔记</title>
+	<link rel="Shortcut Icon" type="image/x-icon" href="../views/image/favicon.ico">
+	
+	<link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="../node_modules/mycss/mycss.css">
+	<script type="text/javascript" src="../node_modules/popper.js/dist/umd/popper.min.js"></script>
+	<style type="text/css">
+		[v-cloak]{
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<div id="app" v-cloak>
+		<section class="leftmenu">
+			<div class="img_head_area">
+				<a href="javascript:void(0)" @click="menu=9">
+					<img class="img_head" src="./index/getheadimage" />
+				</a> 
+			</div>
+			<div class="list-group">
+				<a href="javascript:void(0)" class="list-group-item" :class="menu===0?'active':''" @click="menu=0,setState();">
+					<span class="glyphicon glyphicon-search"></span> 搜索
+				</a>
+				<a href="javascript:void(0)" class="list-group-item" :class="menu===1?'active':''" @click="menu=1,setState();">
+					<span class="glyphicon glyphicon-tasks"></span> 日常
+				</a>
+				<a href="javascript:void(0)" class="list-group-item" :class="menu===2?'active':''" @click="menu=2,setState();">
+					<span class="glyphicon glyphicon-pushpin"></span> 计划
+				</a>
+				<a href="javascript:void(0)" class="list-group-item" :class="menu===3?'active':''" @click="menu=3,setState();">
+					<span class="glyphicon glyphicon-tags"></span> 便签
+				</a>
+			</div>
+		</section>
+		<header class="index_header">
+			<img src="../views/image/logo.jpg" class="index_logo" />
+			<div class="index_title" :style="menu===0?'':'display:none;'">
+				搜索
+			</div>
+			<div class="index_title" :style="menu===1?'':'display:none;'">
+				日常
+			</div>
+			<div class="index_title" :style="menu===2?'':'display:none;'">
+				计划
+			</div>
+			<div class="index_title" :style="menu===3?'':'display:none;'">
+				便签
+			</div>
+			<div class="index_title" :style="menu===9?'':'display:none;'">
+				设置
+			</div>
+			<div class="index_right_panel">
+				<a id="setting" href="javascript:void(0);" class="index_right_choise" @click="menu=9,setState();">
+					<span class="glyphicon glyphicon-cog"></span>设置
+				</a>
+				<a href="/index/logout" class="index_right_choise">
+					<span class="glyphicon glyphicon-off"></span>注销
+				</a>
+				<div class="btn-group">	
+					<button type="button" class="btn index-btn-mybtn dropdown-toggle" data-toggle="dropdown">
+						<span class="sr-only">菜单</span>
+						<span class="index_icon-bar"></span>
+						<span class="index_icon-bar"></span>
+						<span class="index_icon-bar"></span>
+					</button>
+					<div class="dropdown-menu" role="menu">
+						<a id="setting" href="javascript:void(0);" class="dropdown-item" @click="menu=9,setState();">
+							<span class="glyphicon glyphicon-cog"></span>设置
+						</a>
+						<a href="/index/logout" class="dropdown-item">
+							<span class="glyphicon glyphicon-off"></span>注销
+						</a>
+					</div>
+				</div>
+			</div>
+		</header>
+		<aside>
+			<!-- 搜索页面开始 -->
+			<div id="search" :style="menu===0?'':'display:none;'">
+				<input v-model="searchString" type="text" name="search" class="form-control mysearch-input" placeholder="请输入搜索内容...">
+				<a href="javascript:void(0);" class="card add-card" :style="taskState===2?'':'display:none;'">
+					<span class="glyphicon glyphicon-pencil">正在修改</span>
+				</a>
+				<div class="card" :style="taskState===2?'':'display:none;'">
+					<div class="card-header">
+						<input type="text" v-model="newTask.title" class="form-control my-form-control" name="title" id="save_task_title" placeholder="请输入备忘录标题">
+					</div>
+					<div class="card-body">
+						<textarea v-model="newTask.content" class="form-control my-form-control" rows="3" id="save_task_content" placeholder="请输入备忘录内容"></textarea>
+						<div class="card-body-bottom">
+							<input type="text" v-model="newTask.finishtime" class="form-control my-form-add-control" name="title" id="save_task_finishtime" placeholder="完成时间">
+							<select v-model="newTask.importance" class="form-control my-form-add-control" id="save_task_importance">
+								<option disabled selected>优先级</option>
+								<option value="3">优先级-紧迫</option>
+								<option value="2">优先级-正常</option>
+								<option value="1">优先级-可不做</option>
+							</select>
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-success" id="saveTask" @click="saveTask">
+									<span class="glyphicon glyphicon-saved"></span>保存
+								</button>
+								<button class="btn card-btn btn-warning" @click="cancelSave">
+									<span class="glyphicon glyphicon-minus"></span>取消
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card" v-for="task in searchTasks" v-if="task.state===0">
+					<div class="card-header" :class="cardColor(task.importance)">
+						{{task.title}}
+						<a href="javascript:void(0);" class="card-done" @click="finishTask(task)">
+							<span class="glyphicon glyphicon-ok"></span>完成
+						</a>
+					</div>
+					<div class="card-body">
+						{{task.content}}
+						<div class="card-body-bottom">
+							时间:{{task.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class='btn card-btn btn-info' @click="modifyTask(task)">
+									<span class="glyphicon glyphicon-pencil"></span>修改
+								</button>
+								<button class="btn card-btn btn-danger" @click="deleteTask(task)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card" v-for="task in searchTasks" v-if="task.state===1">
+					<div class="card-header" :class="cardColor(task.importance)" style="text-decoration:line-through">
+						{{task.title}}
+						<a href="javascript:void(0);" class="card-done" @click="recoverTask(task)">
+							<span class="glyphicon glyphicon-repeat"></span>恢复
+						</a>
+					</div>
+					<div class="card-body" style="text-decoration:line-through">
+						{{task.content}}
+						<div class="card-body-bottom" style="text-decoration:line-through">
+							时间:{{task.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-danger" @click="deleteTask(task)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card" v-for="plan in searchPlans" v-if="plan.state===0">
+					<div class="card-header" :class="cardColor(plan.importance)">
+						<a href="javascript:void(0);" style="color: black"> {{plan.title}} </a>
+						<a href="javascript:void(0);" class="card-done" @click="finishPlan(plan)">
+							<span class="glyphicon glyphicon-ok"></span>完成
+						</a>
+					</div>
+					<div class="card-body">
+						<div class="card-body-bottom">
+							时间:{{plan.starttime}}~{{plan.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-danger" @click="deletePlan(plan)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+                
+                <div class="card" v-for="plan in searchPlans" v-if="plan.state===1">
+					<div class="card-header" :class="cardColor(plan.importance)" style="text-decoration:line-through">
+						<a href="javascript:void(0);" style="color: black">{{plan.title}}</a>
+						<a href="javascript:void(0);" class="card-done" @click="recoverPlan(plan)">
+							<span class="glyphicon glyphicon-repeat"></span>恢复
+						</a>
+					</div>
+					<div class="card-body">
+						<div class="card-body-bottom" style="text-decoration:line-through">
+							时间:{{plan.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-danger" @click="deletePlan(plan)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="default">
+					<div class="mysearch-default" v-if="searchTasks.length===0"></div>
+				</div>
+			</div>
+			<!-- 搜索页面结束 -->
+			
+			<!-- 任务页面开始 -->
+			<div id="tasks" :style="menu===1?'':'display:none;'">
+				<a href="javascript:void(0);" class="card add-card" :style="taskState===2?'display:none;':''" @click="addTask">
+					<span class="glyphicon glyphicon-plus">添加</span>
+				</a>
+				<a href="javascript:void(0);" class="card add-card" :style="taskState===2?'':'display:none;'" >
+					<span class="glyphicon glyphicon-pencil">正在修改</span>
+				</a>
+				<div class="card" :style="taskState===1||taskState===2?'':'display:none;'">
+					<div class="card-header">
+						<input type="text" v-model="newTask.title"class="form-control my-form-control" name="title" id="save_task_title" placeholder="请输入备忘录标题">
+					</div>
+					<div class="card-body">
+						<textarea v-model="newTask.content" class="form-control my-form-control" rows="3" id="save_task_content" placeholder="请输入备忘录内容"></textarea>
+						<div class="card-body-bottom">
+							<input type="text" v-model="newTask.finishtime" class="form-control my-form-add-control" name="finishtime" id="save_task_finishtime" placeholder="完成时间">
+							<select v-model="newTask.importance" class="form-control my-form-add-control" id="save_task_importance">
+								<option disabled selected>优先级</option>
+								<option value="3">优先级-紧迫</option>
+								<option value="2">优先级-正常</option>
+								<option value="1">优先级-可不做</option>
+							</select>
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-success" id="saveTask" @click="saveTask">
+									<span class="glyphicon glyphicon-saved"></span>保存
+								</button>
+								<button class="btn card-btn btn-warning" @click="cancelSave">
+									<span class="glyphicon glyphicon-minus"></span>取消
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<li class="tasks-title">正在完成</li>
+				<div class="card" v-for="task in sortTasks" v-if="task.state===0">
+					<div class="card-header" :class="cardColor(task.importance)">
+						{{task.title}}
+						<a href="javascript:void(0);" class="card-done" @click="finishTask(task)">
+							<span class="glyphicon glyphicon-ok"></span>完成
+						</a>
+					</div>
+					<div class="card-body">
+						{{task.content}}
+						<div class="card-body-bottom">
+							时间:{{task.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class='btn card-btn btn-info' @click="modifyTask(task)">
+									<span class="glyphicon glyphicon-pencil"></span>修改
+								</button>
+								<button class="btn card-btn btn-danger" @click="deleteTask(task)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<li class="tasks-title">已完成</li>
+				<div class="card" v-for="task in sortTasks" v-if="task.state===1">
+					<div class="card-header" :class="cardColor(task.importance)" style="text-decoration:line-through">
+						{{task.title}}
+						<a href="javascript:void(0);" class="card-done" @click="recoverTask(task)">
+							<span class="glyphicon glyphicon-repeat"></span>恢复
+						</a>
+					</div>
+					<div class="card-body" style="text-decoration:line-through">
+						{{task.content}}
+						<div class="card-body-bottom" style="text-decoration:line-through">
+							时间:{{task.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-danger" @click="deleteTask(task)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- 任务页面结束 -->
+
+			<!-- 计划页面开始 -->
+			<div id="plans" :style="menu===2?'':'display:none;'">
+				<a href="javascript:void(0);" class="card add-card" :style="planState===0||planState===1?'':'display:none;'" @click="addPlan">
+					<span class="glyphicon glyphicon-plus">添加</span>
+				</a>
+				<a href="javascript:void(0);" class="card add-card" :style="planState===2?'':'display:none;'">
+					<span class="glyphicon glyphicon-pencil">正在修改</span>
+				</a>
+
+				<div class="card" :style="planState===1||planState===2?'':'display:none;'">
+					<div class="card-header">
+						<input type="text" v-model="newPlan.title"class="form-control my-form-control" name="title" id="save_plan_title" placeholder="请输入计划标题">
+					</div>
+					<div class="card-body">
+						<div class="card-body-bottom">
+							开始时间:
+							<input type="date" v-model="newPlan.starttime" class="form-control my-form-add-control" name="starttime" id="save_plan_starttime">
+							<br>
+							结束时间:
+							<input type="date" v-model="newPlan.finishtime" class="form-control my-form-add-control" name="finishtime" id="save_plan_finishtime">
+							<select v-model="newPlan.importance" class="form-control my-form-add-control" id="save_plan_importance">
+								<option disabled selected>优先级</option>
+								<option value="3">优先级-紧迫</option>
+								<option value="2">优先级-正常</option>
+								<option value="1">优先级-可不做</option>
+							</select>
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-success" @click="savePlan">
+									<span class="glyphicon glyphicon-saved"></span>保存
+								</button>
+								<button class="btn card-btn btn-warning" @click="cancelSaveplan">
+									<span class="glyphicon glyphicon-minus"></span>取消
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card" v-for="plan in sortPlans" :style="planState!==3||plan.id===theplanid?'':'display:none;'" v-if="plan.state===0">
+					<div class="card-header" :class="cardColor(plan.importance)">
+						<a href="javascript:void(0);" style="color: black" @click="onePlan(plan)">{{plan.title}}</a>
+						<a href="javascript:void(0);" class="card-done" :style="planState===3?'display:none':''" @click="finishPlan(plan)">
+							<span class="glyphicon glyphicon-ok"></span>完成
+						</a>
+					</div>
+					<div class="card-body">
+						<div class="card-body-bottom">
+							时间:{{plan.starttime}}~{{plan.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class='btn card-btn btn-info' :style="planState===3?'display:none':''" @click="modifyPlan(plan)">
+									<span class="glyphicon glyphicon-pencil"></span>修改
+								</button>
+								<button class="btn card-btn btn-danger" :style="planState===3?'display:none':''" @click="deletePlan(plan)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+                
+                <div class="card" v-for="plan in sortPlans" :style="planState!==3||plan.id===theplanid?'':'display:none;'" v-if="plan.state===1">
+					<div class="card-header" :class="cardColor(plan.importance)" style="text-decoration:line-through">
+						<a href="javascript:void(0);" style="color: black" @click="onePlan(plan)">{{plan.title}}</a>
+						<a href="javascript:void(0);" class="card-done" :style="planState===3?'display:none':''" @click="recoverPlan(plan)">
+							<span class="glyphicon glyphicon-repeat"></span>恢复
+						</a>
+					</div>
+					<div class="card-body">
+						<div class="card-body-bottom" style="text-decoration:line-through">
+							时间:{{plan.finishtime}}
+							<div class="btn-group card-btn-group">
+								<button class="btn card-btn btn-danger" :style="planState===3?'display:none':''" @click="deletePlan(plan)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				 <!-- 题目结束 -->
+
+				 <!-- 内容开始 -->
+				<!--  添加修改部分 -->
+				<div id="plan_tasks" :style="planState===3&&theplanstate===0?'':'display:none;'">
+					<a href="javascript:void(0);" class="card add-card" :style="plan_taskState===0||plan_taskState===1?'':'display:none;'" @click="addplanTask">
+						<span class="glyphicon glyphicon-plus">添加</span>
+					</a>
+					<a href="javascript:void(0);" class="card add-card" :style="plan_taskState===2?'':'display:none;'">
+						<span class="glyphicon glyphicon-pencil">正在修改</span>
+					</a>
+
+					<div class="card" :style="plan_taskState===1||plan_taskState===2?'':'display:none;'">
+						<div class="card-header">
+							<input type="text" v-model="newplan_task.title"class="form-control my-form-control" name="title" id="save_plantask_title" placeholder="请输入子计划标题">
+						</div>
+						<div class="card-body">
+							<textarea v-model="newplan_task.content" class="form-control my-form-control" rows="3" id="save_plantask_content" placeholder="请输入子计划内容"></textarea>
+							<div class="card-body-bottom">
+								开始时间:
+								<input type="date" v-model="newplan_task.starttime" class="form-control my-form-add-control" id="save_plantask_starttime">
+								<div class="btn-group card-btn-group">
+									<button class="btn card-btn btn-success" @click="saveplanTask">
+										<span class="glyphicon glyphicon-saved"></span>保存
+									</button>
+									<button class="btn card-btn btn-warning" @click="cancelplanTask">
+										<span class="glyphicon glyphicon-minus"></span>取消
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 添加修改部分结束 -->
+				<div class="card" v-for="task in plan_tasks" :style="planState===3?'':'display:none;'">
+					<div class="card-header" :style="task.state===0?'':'text-decoration:line-through;'">
+						{{task.title}}
+						<a href="javascript:void(0);" class="card-done" style="color:black;" :style="theplanstate===0&&task.state===0?'':'display:none'" @click="finishplanTask(task)">
+							<span class="glyphicon glyphicon-ok"></span>完成
+						</a>
+						<a href="javascript:void(0);" class="card-done" style="color:black;" :style="theplanstate===0&&task.state===1?'':'display:none'" @click="recoverplanTask(task)">
+							<span class="glyphicon glyphicon-ok"></span>恢复
+						</a>
+					</div>
+					<div class="card-body" :style="task.state===0?'':'text-decoration:line-through;'">
+						{{task.content}}
+						<div class="card-body-bottom" :style="task.state===0?'':'text-decoration:line-through;'">
+							开始时间:{{task.starttime}}
+							<div class="btn-group card-btn-group">
+								<button class='btn card-btn btn-info' :style="theplanstate===0?'':'display:none'" @click="modifyplanTask(task)">
+									<span class="glyphicon glyphicon-pencil"></span>修改
+								</button>
+								<button class="btn card-btn btn-danger" @click="deleteplanTask(task)">
+									<span class="glyphicon glyphicon-trash"></span>删除
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				
+
+			</div>
+			<!-- 计划页面结束 -->
+
+			<!-- 设置页面开始 -->
+			<div id="setting" :style="menu===9?'':'display:none;'">
+				<form  action="/index/upload" method="post" enctype="multipart/form-data">
+					<div class="form-group" style="height: 80px;">
+						<div class="setting-font">设置头像：</div>
+						<input class="form-control" style="margin-left: 10%;" type="file" id="headimg" name="headimg" accept="image/*">
+						<input type="submit" style="float: right;" value="点击上传">
+					</div>
+				</form>
+			</div>
+			<!-- 设置页面结束 -->
+		</aside>
+	</div>
+
+	<script type="text/javascript" src="../node_modules/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.js"></script>
+	<script type="text/javascript" src="../node_modules/vue/dist/vue.js"></script>
+	<script type="text/javascript">
+		var vm=new Vue({
+			el:'#app',
+			data: {
+				menu:1,
+				taskState:0,//0等待不显示状态，1添加状态，2修改状态
+				planState:0,//0普通状态，1为添加任务状态，2修改任务状态，3为点击单个计划状态
+				plan_taskState:0,//单个计划中的状态0普通，1添加，2修改
+				searchString:'',
+				newTask:{
+					id:0,
+					title:'',
+					content:'',
+					finishtime:'',
+					state:0,
+					importance:1
+				},
+				tasks:[<%for (var i = dailytasks.length - 1; i >= 0; i--) { %>
+					{
+						id: <%=dailytasks[i].id%>,
+   	 					title: '<%=dailytasks[i].title%>',
+						content: '<%=dailytasks[i].content%>',
+						finishtime:  '<%=dailytasks[i].finishtime%>',
+					    state:  <%=dailytasks[i].state%>,
+					    importance:  <%=dailytasks[i].importance%>
+					},
+				<%}%>],
+				newPlan:{
+					id:0,
+					title:'',
+					starttime:'',
+					finishtime:'',
+					importance:1,
+					state:0,
+				},
+				plans:[<%for (var i = plans.length - 1; i >= 0; i--) { %>
+					{
+						id: <%=plans[i].id%>,
+   	 					title: '<%=plans[i].title%>',
+						starttime: '<%=plans[i].starttime%>',
+						finishtime:  '<%=plans[i].finishtime%>',
+					    state:  <%=plans[i].state%>,
+					    importance:  <%=plans[i].importance%>
+					},
+				<%}%>],
+				theplanid:0,//选中计划的id
+				theplanstate:0,//选中计划状态 0正常 1修改
+				newplan_task:{
+					id:0,
+					plan_id:0,
+					title:'',
+					content:'',
+					starttime:'',
+					state:0
+				},
+				plan_tasks:[]
+			},
+			methods:{
+				setState:function(){
+					sendState();
+				},
+				//添加
+				addTask:function(){
+					if (this.tasks.length>=10) {
+						alert("最多添加10个日常备忘任务！");
+					}else if(this.taskState===0) {
+						this.taskState=1;
+					}
+				},
+				//取消添加或修改
+				cancelSave:function(){
+					this.newTask={
+						id:0,
+						title:'',
+						content:'',
+						finishtime:'',
+						state:0,
+						importance:1
+					};
+					if (this.taskState===2) {
+						this.taskState=0;
+						sendState();
+						location.reload();
+					}
+					this.taskState=0;
+				},
+				//保存添加的任务或保存修改
+				saveTask:function(){
+					if (this.newTask.title.length===0) {
+						alert("未输入标题!");
+					}else if(this.taskState===1){
+						$.ajax({
+							type:"POST",
+							url:"/index/saveAdd",
+							data:{
+								title:$("#save_task_title").val(),
+								content:$("#save_task_content").val(),
+								finishtime:$("#save_task_finishtime").val(),
+								state:0,
+								importance:$("#save_task_importance").val()
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error!");
+								}else{
+									vm.newTask.id=data.id;
+									vm.tasks.push(vm.newTask);
+									vm.newTask={
+										id:0,
+										title:'',
+										content:'',
+										finishtime:'',
+										state:0,
+										importance:1
+									};
+									vm.taskState=0;
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}else if (this.taskState===2) {
+						$.ajax({
+							type:"POST",
+							url:"/index/modifyTask",
+							data:{
+								id:vm.newTask.id,
+								title:vm.newTask.title,
+								content:vm.newTask.content,
+								finishtime:vm.newTask.finishtime,
+								state:vm.newTask.state,
+								importance:vm.newTask.importance
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error!");
+								}else{
+									vm.taskState=0;
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}
+				},
+				cardColor:function(importance){
+					if (importance===1) {
+						return "bg-success";
+					}else if (importance===2) {
+						return "bg-warning";
+					}else{
+						return "bg-danger";
+					}
+				},
+				//修改
+				modifyTask:function(task){
+					this.taskState=2;
+					this.newTask=task;
+				},
+				//完成任务
+				finishTask:function(task){
+					$.ajax({
+						type:"POST",
+						url:"/index/finishTask",
+						data:{
+							id:task.id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								task.state=1;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				//恢复完成的任务
+				recoverTask:function(task){
+					$.ajax({
+						type:"POST",
+						url:"/index/recoverTask",
+						data:{
+							id:task.id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								task.state=0;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				deleteTask:function(task){
+					for (var i=this.tasks.length-1;i>=0;i--) {
+						if(this.tasks[i].id===task.id){
+							$.ajax({
+								type:"POST",
+								url:"/index/deleteTask",
+								data:{
+									id:task.id
+								},
+								dataType:"json",
+								success:function(data){
+									if(data.ok===0){
+										alert('删除失败！');
+									}else{
+										vm.tasks.splice(i,1);
+									}
+								},
+								error:function(data){
+									console.log(data);
+								}
+							});
+							break;
+						}
+					}
+				},
+				//计划部分开始
+				addPlan:function(){
+					this.planState=1;
+				},
+				savePlan:function(){
+					if(this.newPlan.title.length===0){
+						alert("未输入标题")
+					}else if (this.planState===1) {
+						$.ajax({
+							type:"POST",
+							url:"/index/addPlan",
+							data:{
+								title:$("#save_plan_title").val(),
+								starttime:$("#save_plan_starttime").val(),
+								finishtime:$("#save_plan_finishtime").val(),
+								importance:$("#save_plan_importance").val(),
+								state:0
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error");
+								}else{
+									vm.newPlan.id=data.id;
+									vm.plans.push(vm.newPlan);
+									vm.newPlan={
+										id:0,
+										title:'',
+										starttime:'',
+										finishtime:'',
+										importance:1,
+										state:0
+									};
+									vm.planState=0;
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}else if (this.planState===2) {
+						$.ajax({
+							type:"POST",
+							url:"/index/modifyPlan",
+							data:{
+								id:vm.newPlan.id,
+								title:vm.newPlan.title,
+								starttime:vm.newPlan.starttime,
+								finishtime:vm.newPlan.finishtime,
+								importance:vm.newPlan.importance,
+								state:vm.newPlan.state
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error");
+								}else{
+									vm.planState=0;
+									for (var i = vm.plans.length - 1; i >= 0; i--) {
+										if(vm.plans[i].id===vm.newPlan.id){
+											vm.plan[i].title=vm.newplan.title;
+											vm.plan[i].starttime=vm.newplan.starttime;
+											vm.plan[i].finishtime=vm.newplan.finishtime;
+											vm.plan[i].importance=vm.newplan.importance;
+										}
+									}
+									vm.newPlan={
+										id:0,
+										title:'',
+										starttime:'',
+										finishtime:'',
+										importance:1,
+										state:0
+									};
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}
+				},
+				cancelSaveplan:function(){
+					this.newPlan={
+						id:0,
+						title:'',
+						starttime:'',
+						finishtime:'',
+						importance:1,
+						state:0
+					};
+					this.planState=0;
+				},
+				modifyPlan:function(plan){
+					this.planState=2;
+					vm.newPlan={
+						id:plan.id,
+						title:plan.title,
+						starttime:plan.starttime,
+						finishtime:plan.finishtime,
+						importance:plan.importance,
+						state:plan.state
+					};
+				},
+				finishPlan:function(plan){
+					$.ajax({
+						type:"POST",
+						url:"/index/finishPlan",
+						data:{
+							id:plan.id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								plan.state=1;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				recoverPlan:function(plan){
+					$.ajax({
+						type:"POST",
+						url:"/index/recoverPlan",
+						data:{
+							id:plan.id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								plan.state=0;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				deletePlan:function(plan){
+					for (var i=this.plans.length-1;i>=0;i--) {
+						if(this.plans[i].id===plan.id){
+							$.ajax({
+								type:"POST",
+								url:"/index/deletePlan",
+								data:{
+									id:plan.id
+								},
+								dataType:"json",
+								success:function(data){
+									if(data.ok===0){
+										alert('删除失败！');
+									}else{
+										vm.plans.splice(i,1);
+									}
+								},
+								error:function(data){
+									console.log(data);
+								}
+							});
+							break;
+						}
+					}
+				},
+				//计划内容开始
+				onePlan:function(plan){
+					if (this.planState!==3) {
+						this.planState=3;
+						this.theplanid=plan.id;
+						this.theplanstate=plan.state;
+						$.ajax({
+							type:'POST',
+							url:'/index/getplanTasks',
+							data:{
+								theplanid:vm.theplanid
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert('error!');
+								}else{
+									vm.plan_tasks=data.plan_tasks;
+									sendState();
+								}
+							}
+						});
+					}else{
+						this.planState=0;
+						this.theplanid=0;
+						this.theplanstate=0;
+						sendState();
+					}
+				},
+				addplanTask:function(){
+					if(this.plan_tasks.length>=10){
+						alert("每个计划最多添加10个子任务！")
+					}else{
+						this.plan_taskState=1;
+					}
+				},
+				saveplanTask:function(){
+					if(this.newplan_task.title.length===0){
+						alert("未输入标题")
+					}else if (this.plan_taskState===1) {
+						$.ajax({
+							type:"POST",
+							url:"/index/addplanTask",
+							data:{
+								plan_id:vm.theplanid,
+								title:$("#save_plantask_title").val(),
+								content:$("#save_plantask_content").val(),
+								starttime:$("#save_plantask_starttime").val(),
+								state:0
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error");
+								}else{
+									vm.newplan_task.id=data.id;
+									vm.plan_tasks.push(vm.newplan_task);
+									vm.newplan_task={
+										id:0,
+										plan_id:0,
+										title:'',
+										content:'',
+										starttime:'',
+										state:0
+									};
+									vm.plan_taskState=0;
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}else if (this.plan_taskState===2) {
+						$.ajax({
+							type:"POST",
+							url:"/index/modifyplanTask",
+							data:{
+								id:vm.newplan_task.id,
+								plan_id:vm.newplan_task.plan_id,
+								title:vm.newplan_task.title,
+								content:vm.newplan_task.content,
+								starttime:vm.newplan_task.starttime,
+								state:vm.newplan_task.state
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert("error");
+								}else{
+									vm.plan_taskState=0;
+									for (var i = vm.plan_tasks.length - 1; i >= 0; i--) {
+										if(vm.plan_tasks[i].id===vm.newplan_task.id){
+											vm.plan_tasks[i].title=vm.newplan_task.title;
+											vm.plan_tasks[i].content=vm.newplan_task.content;
+											vm.plan_tasks[i].starttime=vm.newplan_task.starttime;
+										}
+									}
+									vm.newplan_task={
+										id:0,
+										plan_id:0,
+										title:'',
+										content:'',
+										starttime:'',
+										state:0
+									};
+									sendState();
+									location.reload();
+								}
+							},
+							error:function(data){
+								console.log(data);
+								alert('保存失败！');
+							}
+						});
+					}
+				},
+				cancelplanTask:function(){
+					this.newplan_task={
+						id:0,
+						plan_id:0,
+						title:'',
+						content:'',
+						starttime:'',
+						state:0
+					};
+					this.plan_taskState=0;
+				},
+				finishplanTask:function(task){
+					$.ajax({
+						type:"POST",
+						url:"/index/finishplanTask",
+						data:{
+							id:task.id,
+							plan_id:task.plan_id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								task.state=1;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				recoverplanTask:function(task){
+					$.ajax({
+						type:"POST",
+						url:"/index/recoverplanTask",
+						data:{
+							id:task.id,
+							plan_id:task.plan_id
+						},
+						dataType:'json',
+						success:function(data){
+							if (data.ok===0) {
+								alert('修改失败！');
+							}else{
+								task.state=0;
+							}
+						},
+						error:function(data){
+							console.log(data);
+							alert('修改失败！');
+						}
+					});
+				},
+				modifyplanTask:function(task){
+					this.plan_taskState=2;
+					vm.newplan_task={
+						id:task.id,
+						plan_id:task.plan_id,
+						title:task.title,
+						content:task.content,
+						starttime:task.starttime,
+						state:task.state
+					};
+				},
+				deleteplanTask:function(task){
+					for (var i=this.plan_tasks.length-1;i>=0;i--) {
+						if(this.plan_tasks[i].id===task.id){
+							$.ajax({
+								type:"POST",
+								url:"/index/deleteplanTask",
+								data:{
+									id:task.id,
+									plan_id:task.plan_id
+								},
+								dataType:"json",
+								success:function(data){
+									if(data.ok===0){
+										alert('删除失败！');
+									}else{
+										vm.plan_tasks.splice(i,1);
+									}
+								},
+								error:function(data){
+									console.log(data);
+								}
+							});
+							break;
+						}
+					}
+				}
+			},
+			computed:{
+				sortTasks:function(){
+					return sortArray(this.tasks);
+				},
+				searchTasks:function(){
+					var searchTasks=[];
+					if (this.searchString.length!==0){
+						for (var i=this.tasks.length-1;i>=0;i--) {
+							if(this.tasks[i].title.indexOf(this.searchString)!==-1||this.tasks[i].content.indexOf(this.searchString)!==-1||this.tasks[i].finishtime.indexOf(this.searchString)!==-1){
+								searchTasks.push(this.tasks[i]);
+							}
+						}
+					}
+					return sortArray(searchTasks);
+				},
+				searchPlans:function(){
+					var searchPlans=[];
+					if (this.searchString.length!==0){
+						for (var i=this.plans.length-1;i>=0;i--) {
+							if(this.plans[i].title.indexOf(this.searchString)!==-1||this.plans[i].starttime.indexOf(this.searchString)!==-1||this.plans[i].finishtime.indexOf(this.searchString)!==-1){
+								searchPlans.push(this.plans[i]);
+							}
+						}
+					}
+					return sortArray(searchPlans);
+				},
+				sortPlans:function(){
+					return sortArray(this.plans);
+				}
+			}
+		});
+		function sortArray(tasksArray){
+			for (var i=tasksArray.length-1;i>=1;i--) {
+				for(var j=0;j<i;j++){
+					if (tasksArray[j].importance<tasksArray[j+1].importance) {
+						var k=tasksArray[j];
+						tasksArray[j]=tasksArray[j+1];
+						tasksArray[j+1]=k;
+					}
+				}	
+			}
+			return tasksArray;
+		}
+		$(function(){
+			$.ajax({
+				type:'POST',
+				url:'/index/getState',
+				dataType:'json',
+				success:function(data){
+					vm.menu=parseInt(data.menu);
+					vm.taskState=parseInt(data.taskState);
+					vm.planState=parseInt(data.planState);
+					vm.plan_taskState=parseInt(data.plan_taskState);
+					vm.theplanid=parseInt(data.theplanid);
+					vm.theplanstate=parseInt(data.theplanstate);
+					if (vm.planState===3) {
+						$.ajax({
+							type:'POST',
+							url:'/index/getplanTasks',
+							data:{
+								theplanid:vm.theplanid
+							},
+							dataType:'json',
+							success:function(data){
+								if (data.ok===0) {
+									alert('error!');
+								}else{
+									vm.plan_tasks=data.plan_tasks;
+								}
+							}
+						});
+					}
+				},
+				error:function(err){
+					console.log(err);
+				}
+			});
+		});
+		function sendState(){
+			$.ajax({
+				type:'POST',
+				url:'/index/setState',
+				data:{
+					menu:vm.menu,
+					taskState:vm.taskState,
+					planState:vm.planState,
+					plan_taskState:vm.plan_taskState,
+					theplanid:vm.theplanid,
+                    theplanstate:vm.theplanstate
+				},
+				dataType:'json',
+				success:function(data){
+					if (data.ok===0) {
+						alert('error!');
+					}
+				}
+			});
+		}
+	</script>
+</body>
+</html>

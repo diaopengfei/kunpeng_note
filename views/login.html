@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta content="text/html" charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>工作学习有条不紊|鲲鹏笔记</title>
+	<link rel="Shortcut Icon" type="image/x-icon" href="../views/image/favicon.ico">
+	
+	<link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="../node_modules/mycss/mycss.css">
+	<script type="text/javascript" src="../node_modules/popper.js/dist/umd/popper.min.js"></script>
+</head>
+<body>
+	<header class="login_header">
+		<div class="logo_container">
+			<img src="../views/image/logo.jpg" class="logo_image" />
+			<p class="logo_title">鲲鹏笔记</p>
+		</div>
+		<div class="right_panel">
+			<a href="javascript:void(0);" class="right_choise">登陆</a>
+			<a href="/register" class="right_choise">注册</a>
+			<div class="btn-group">	
+				<button type="button" class="btn btn-mybtn dropdown-toggle" data-toggle="dropdown">
+					<span class="sr-only">菜单</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<div class="dropdown-menu" role="menu">
+					<a href="javascript:void(0);" class="dropdown-item">登陆</a>
+					<a href="/register" class="dropdown-item">注册</a>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<div class="lr-form">
+		<div class="container">
+			<div class="title-container">
+				<div class="form-title">
+					使用<span style="font-family: 华文行楷;color: #66CD00;">鲲鹏笔记</span>
+				</div>
+				<div class="form-title form-title-s">
+					管理你的工作学习
+				</div>
+			</div>
+			<div class="form-container">
+				<form role="form" class="form-group" name="login" action="javascript:void(0);" method="post">
+					<input type="text" class="form-control" name="name" id="username" placeholder="用户名">
+					<input type="password" class="form-control" name="password" id="password" placeholder="密码">
+					<button id="submit" class="btn btn-success">立即登陆</button>
+				</form>
+			</div>
+			<div class="introduce">
+				<img src="../views/image/intro_picture.jpg" class="intro-content-l">
+				<div class="intro-content-r">
+					<h2 style="color:white;font-family: 华文行楷">鲲鹏笔记</h2><p style="color:white;">无论是点滴灵感、待办清单、或是会议记录、项目资料，笔记在手，方便随时记录，永久保存内容。让生活有条不紊，用好每一分每一秒。</p>
+					<a href="/register">创建账户</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer class="foot">
+		Copyright&copy;2018 鲲鹏&hearts;邮箱：903541981@qq.com
+	</footer>
+	<script type="text/javascript" src="../node_modules/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			$('#submit').click(function(){
+				$.ajax({
+					type:"POST",
+					url:"/login",
+					data:{
+						username:$("#username").val(),
+						password:$("#password").val()
+					},
+					dataType:'text',
+					beforeSend:function(xhr){
+						if($("#username").val()==''||$("#password").val()==''){
+							alert("用户名或密码未输入！");
+							return false;
+						}
+					},
+					success:function(data){
+						eval(data);
+					},
+					error:function(data) {
+						console.log(data);
+					}
+				});
+			});
+		});
+	</script>
+</body>
+</html>

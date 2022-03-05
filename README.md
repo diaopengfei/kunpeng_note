@@ -1,6 +1,7 @@
 #kunpeng_note
 ============
 这是一个node的新手练手项目，前端运用bootstrap、jquery和vue，后端node搭建。<br>
+<需要学习的基础有？>
 ### 入口<br>
     node app.js
 ### 本地环境搭建<br>
